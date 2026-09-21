@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <meta
+    name="theme-color"
+    content="#0f172a">
+
+  <title>QR Scanner - Youth Revival PGMW II</title>
+
+  <!--
+    Library QR Scanner.
+    Versi dipin sehingga perilakunya tidak bergantung
+    pada perubahan versi otomatis di CDN.
+  -->
+  <script
+    src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js">
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #2563eb;
+      --dark: #0f172a;
+      --text: #172033;
+      --muted: #64748b;
+      --surface: #ffffff;
+      --background: #f1f5f9;
+      --danger-bg: #fee2e2;
+      --danger-text: #991b1b;
+      --success-bg: #dcfce7;
+      --success-text: #166534;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 15px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .header p {
+      margin: 7px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    #reader {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 12px;
+      background: #000;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      text-align: center;
+      color: var(--muted);
+      background: #f8fafc;
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .status.success {
+      background: var(--success-bg);
+      color: var(--success-text);
+      font-weight: 700;
+    }
+
+    .status.error {
+      background: var(--danger-bg);
+      color: var(--danger-text);
+      font-weight: 700;
+    }
+
+    .error-box {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--danger-bg);
+      color: var(--danger-text);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-dark {
+      background: var(--dark);
+      color: #fff;
+    }
+
+    .result {
+      display: none;
+    }
+
+    .result-value {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 10px;
+      background: #f8fafc;
+      font-size: 15px;
+      word-break: break-all;
+    }
+
+    .note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+
+    .return-note {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #eff6ff;
+      color: #1e40af;
+      font-size: 13px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        padding: 10px;
+      }
+
+      .header h1 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <div class="header">
+      <h1>QR Scanner</h1>
+      <p>Youth Revival PGMW II</p>
+    </div>
+
+    <div class="card">
+
+      <div id="reader"></div>
+
+      <div
+        class="status"
+        id="status">
+        Tekan AKTIFKAN KAMERA untuk mulai.
+      </div>
+
+      <div
+        class="error-box"
+        id="errorBox">
+      </div>
+
+      <button
+        type="button"
+        class="btn-primary"
+        id="startButton"
+        onclick="startCamera()">
+        📷 AKTIFKAN KAMERA
+      </button>
+
+      <button
+        type="button"
+        class="btn-dark"
+        id="restartButton"
+        onclick="restartCamera()">
+        🔄 MULAI ULANG SCANNER
+      </button>
+
+      <div
+        class="return-note"
+        id="returnNote">
+        QR sudah terbaca. Kembali ke halaman
+        <b>Check-in Youth Revival PGMW II</b>.
+      </div>
+
+      <div class="note">
+        Gunakan Chrome/Browser yang mendukung kamera.
+        Saat diminta izin kamera, pilih <b>Izinkan</b>.
+      </div>
+
+    </div>
+
+    <div
+      class="card result"
+      id="result">
+
+      <b>QR TERBACA</b>
+
+      <div
+        class="result-value"
+        id="qrValue">
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    /* =========================================================
+       GLOBAL CONFIG
+       ========================================================= */
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const SESSION_TOKEN =
+      params.get("token") || "";
+
+    const PARENT_ORIGIN =
+      params.get("parentOrigin") || "";
+
+    const IS_TEST =
+      params.get("test") === "1";
+
+
+    /* =========================================================
+       GLOBAL STATE
+       ========================================================= */
+
+    let scanner =
+      null;
+
+    let cameraRunning =
+      false;
+
+    let qrSent =
+      false;
+
+
+    /* =========================================================
+       POST MESSAGE HELPER
+       ========================================================= */
+    function sendMessage(
+      type,
+      payload
+    ) {
+
+      if (
+        !window.opener
+      ) {
+
+        console.log(
+          "Tidak ada opener."
+        );
+
+        return false;
+
+      }
+
+
+      const message = Object.assign(
+        {
+          type: type,
+          token: SESSION_TOKEN
+        },
+        payload || {}
+      );
+
+
+      /*
+       * Gunakan targetOrigin yang diberikan
+       * oleh halaman Apps Script.
+       *
+       * Jika tidak tersedia, fallback "*" dipakai.
+       * Halaman Apps Script tetap melakukan validasi
+       * terhadap origin, source, dan token.
+       */
+      const targetOrigin =
+        (
+          PARENT_ORIGIN &&
+          PARENT_ORIGIN !== "null"
+        )
+          ? PARENT_ORIGIN
+          : "*";
+
+
+      try {
+
+        window.opener.postMessage(
+          message,
+          targetOrigin
+        );
+
+        return true;
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "postMessage error:",
+          error
+        );
+
+        return false;
+
+      }
+
+    }
+
+
+    /* =========================================================
+       INITIALIZE
+       ========================================================= */
+    window.addEventListener(
+      "load",
+      function() {
+
+        sendMessage(
+          "SCANNER_READY",
+          {
+            test: IS_TEST
+          }
+        );
+
+      }
+    );
+
+
+    /* =========================================================
+       START CAMERA
+       ========================================================= */
+    function startCamera() {
+
+      if (cameraRunning) {
+
+        return;
+
+      }
+
+
+      hideError();
+
+      qrSent = false;
+
+
+      setStatus(
+        "Meminta akses kamera..."
+      );
+
+
+      if (
+        !window.isSecureContext
+      ) {
+
+        showError(
+          "Halaman scanner harus dibuka melalui HTTPS."
+        );
+
+        sendMessage(
+          "SCANNER_ERROR",
+          {
+            errorName:
+              "InsecureContext",
+
+            message:
+              "Halaman scanner bukan secure context."
+          }
+        );
+
+        return;
+
+      }
+
+
+      if (
+        !window.Html5Qrcode
+      ) {
+
+        showError(
+          "Library QR scanner gagal dimuat."
+        );
+
+        sendMessage(
+          "SCANNER_ERROR",
+          {
+            errorName:
+              "LibraryUnavailable",
+
+            message:
+              "Html5Qrcode tidak tersedia."
+          }
+        );
+
+        return;
+
+      }
+
+
+      createScanner();
+
+    }
+
+
+    /* =========================================================
+       CREATE SCANNER
+       ========================================================= */
+    function createScanner() {
+
+      if (scanner) {
+
+        try {
+          scanner.clear();
+        } catch (error) {
+          console.log(
+            "Clear scanner:",
+            error
+          );
+        }
+
+      }
+
+
+      scanner =
+        new Html5Qrcode(
+          "reader"
+        );
+
+
+      const config = {
+
+        fps: 10,
+
+        qrbox: function(
+          viewfinderWidth,
+          viewfinderHeight
+        ) {
+
+          const minDimension =
+            Math.min(
+              viewfinderWidth,
+              viewfinderHeight
+            );
+
+
+          const size =
+            Math.max(
+              180,
+              Math.min(
+                280,
+                Math.floor(
+                  minDimension * 0.70
+                )
+              )
+            );
+
+
+          return {
+            width: size,
+            height: size
+          };
+
+        },
+
+        aspectRatio: 1.777778,
+
+        rememberLastUsedCamera: true
+
+      };
+
+
+      setStatus(
+        "Mengaktifkan kamera belakang..."
+      );
+
+
+      /*
+       * facingMode=environment:
+       * prioritas ke kamera belakang pada HP.
+       */
+      scanner.start(
+
+        {
+          facingMode:
+            "environment"
+        },
+
+        config,
+
+        onScanSuccess,
+
+        onScanFailure
+
+      )
+
+      .then(
+        function() {
+
+          cameraRunning =
+            true;
+
+
+          setStatus(
+            "✓ Kamera aktif. Arahkan QR Code ke kotak scanner."
+          );
+
+
+          sendMessage(
+            "CAMERA_READY"
+          );
+
+
+          document.getElementById(
+            "startButton"
+          ).disabled =
+            true;
+
+        }
+      )
+
+      .catch(
+        function(error) {
+
+          cameraRunning =
+            false;
+
+
+          console.error(
+            "Camera start error:",
+            error
+          );
+
+
+          handleCameraError(
+            error
+          );
+
+        }
+      );
+
+    }
+
+
+    /* =========================================================
+       QR SUCCESS
+       ========================================================= */
+    function onScanSuccess(
+      decodedText
+    ) {
+
+      if (
+        qrSent
+      ) {
+
+        return;
+
+      }
+
+
+      qrSent =
+        true;
+
+
+      setStatus(
+        "✓ QR berhasil dibaca.",
+        "success"
+      );
+
+
+      showQrResult(
+        decodedText
+      );
+
+
+      sendMessage(
+        "QR_SCAN",
+        {
+          id:
+            String(
+              decodedText || ""
+            )
+            .trim()
+            .toUpperCase()
+        }
+      );
+
+
+      stopCamera();
+
+
+      document.getElementById(
+        "returnNote"
+      ).style.display =
+        "block";
+
+
+      /*
+       * Beri waktu sedikit untuk postMessage
+       * sebelum mencoba menutup tab.
+       */
+      setTimeout(
+        function() {
+
+          try {
+
+            window.close();
+
+          } catch (error) {
+
+            console.log(
+              "window.close:",
+              error
+            );
+
+          }
+
+        },
+        500
+      );
+
+    }
+
+
+    /* =========================================================
+       QR FAILURE
+       ========================================================= */
+    function onScanFailure(
+      errorMessage
+    ) {
+
+      /*
+       * Error pencarian QR terjadi terus-menerus
+       * saat belum menemukan QR. Jangan tampilkan.
+       */
+    }
+
+
+    /* =========================================================
+       STOP CAMERA
+       ========================================================= */
+    function stopCamera() {
+
+      if (!scanner) {
+
+        return;
+
+      }
+
+
+      try {
+
+        scanner
+          .stop()
+          .then(
+            function() {
+
+              cameraRunning =
+                false;
+
+            }
+          )
+          .catch(
+            function(error) {
+
+              console.log(
+                "Stop camera:",
+                error
+              );
+
+            }
+          );
+
+      }
+
+      catch (error) {
+
+        console.log(
+          "Stop camera exception:",
+          error
+        );
+
+      }
+
+    }
+
+
+    /* =========================================================
+       RESTART CAMERA
+       ========================================================= */
+    function restartCamera() {
+
+      qrSent =
+        false;
+
+
+      hideError();
+
+
+      document.getElementById(
+        "result"
+      ).style.display =
+        "none";
+
+
+      document.getElementById(
+        "returnNote"
+      ).style.display =
+        "none";
+
+
+      document.getElementById(
+        "startButton"
+      ).disabled =
+        false;
+
+
+      stopCamera();
+
+
+      setTimeout(
+        function() {
+
+          startCamera();
+
+        },
+        300
+      );
+
+    }
+
+
+    /* =========================================================
+       CAMERA ERROR
+       ========================================================= */
+    function handleCameraError(
+      error
+    ) {
+
+      const name =
+        error &&
+        error.name
+          ? error.name
+          : "UNKNOWN";
+
+
+      let message =
+        "Kamera tidak dapat digunakan.";
+
+
+      if (
+        name ===
+        "NotAllowedError"
+      ) {
+
+        message =
+          "Akses kamera ditolak. " +
+          "Pada Chrome, buka izin situs untuk GitHub Pages ini " +
+          "dan pilih Izinkan untuk Kamera.";
+
+      }
+
+      else if (
+        name ===
+        "NotFoundError"
+      ) {
+
+        message =
+          "Kamera tidak ditemukan pada perangkat.";
+
+      }
+
+      else if (
+        name ===
+        "NotReadableError"
+      ) {
+
+        message =
+          "Kamera sedang digunakan aplikasi lain.";
+
+      }
+
+      else if (
+        name ===
+        "OverconstrainedError"
+      ) {
+
+        message =
+          "Konfigurasi kamera tidak didukung perangkat.";
+
+      }
+
+      else if (
+        name ===
+        "SecurityError"
+      ) {
+
+        message =
+          "Browser memblokir akses kamera karena kebijakan keamanan.";
+
+      }
+
+      else if (
+        error &&
+        error.message
+      ) {
+
+        message =
+          error.message;
+
+      }
+
+
+      showError(
+        message,
+        name
+      );
+
+
+      sendMessage(
+        "SCANNER_ERROR",
+        {
+          errorName:
+            name,
+
+          message:
+            message
+        }
+      );
+
+
+      document.getElementById(
+        "startButton"
+      ).disabled =
+        false;
+
+    }
+
+
+    /* =========================================================
+       SHOW ERROR
+       ========================================================= */
+    function showError(
+      message,
+      errorName
+    ) {
+
+      const box =
+        document.getElementById(
+          "errorBox"
+        );
+
+
+      box.innerHTML = `
+
+        <b>⚠ Kamera bermasalah</b>
+
+        <br><br>
+
+        ${escapeHtml(message)}
+
+        ${
+          errorName
+            ? `
+              <br><br>
+              <small>
+                Error:
+                ${escapeHtml(errorName)}
+              </small>
+            `
+            : ""
+        }
+
+      `;
+
+
+      box.style.display =
+        "block";
+
+
+      setStatus(
+        "Kamera belum aktif.",
+        "error"
+      );
+
+    }
+
+
+    /* =========================================================
+       HIDE ERROR
+       ========================================================= */
+    function hideError() {
+
+      const box =
+        document.getElementById(
+          "errorBox"
+        );
+
+
+      box.style.display =
+        "none";
+
+      box.innerHTML =
+        "";
+
+    }
+
+
+    /* =========================================================
+       STATUS
+       ========================================================= */
+    function setStatus(
+      text,
+      type
+    ) {
+
+      const element =
+        document.getElementById(
+          "status"
+        );
+
+
+      element.textContent =
+        text;
+
+
+      element.className =
+        "status";
+
+
+      if (type) {
+
+        element.classList.add(
+          type
+        );
+
+      }
+
+    }
+
+
+    /* =========================================================
+       SHOW QR RESULT
+       ========================================================= */
+    function showQrResult(
+      decodedText
+    ) {
+
+      const result =
+        document.getElementById(
+          "result"
+        );
+
+      const qrValue =
+        document.getElementById(
+          "qrValue"
+        );
+
+
+      qrValue.textContent =
+        String(
+          decodedText || ""
+        );
+
+
+      result.style.display =
+        "block";
+
+    }
+
+
+    /* =========================================================
+       ESCAPE HTML
+       ========================================================= */
+    function escapeHtml(text) {
+
+      if (
+        text === null ||
+        text === undefined
+      ) {
+
+        return "";
+
+      }
+
+
+      return String(text)
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+        .replace(
+          /</g,
+          "&lt;"
+        )
+        .replace(
+          />/g,
+          "&gt;"
+        )
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+  </script>
+</body>
+</html>
